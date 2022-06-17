@@ -1,7 +1,6 @@
 import * as fcl from "@onflow/fcl";
 import * as t from "@onflow/types";
 import * as fs from "fs";
-import { join } from "path";
 import rlp from "rlp";
 
 import { delay } from "../../utils";
