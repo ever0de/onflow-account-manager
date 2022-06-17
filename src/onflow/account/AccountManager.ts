@@ -1,11 +1,11 @@
 import * as fcl from "@onflow/fcl";
 import * as t from "@onflow/types";
-import { ec as EC } from "elliptic";
 import * as fs from "fs";
 import { join } from "path";
 import rlp from "rlp";
 
 import { delay } from "../../utils";
+import { ec } from "../cadence/crypto";
 import { createAccountCadence } from "../cadence/tx-constants";
 import { Address, TxId } from "../types";
 
@@ -14,7 +14,6 @@ import { KeyPair } from "./types";
 
 export class AccountManager {
   private readonly interval: number = 100;
-  private ec: EC = new EC("p256");
 
   constructor(
     private readonly mainAccount: Account,
@@ -121,7 +120,7 @@ export class AccountManager {
   }
 
   private generateKeyPair(): KeyPair {
-    const keyPair = this.ec.genKeyPair();
+    const keyPair = ec.genKeyPair();
 
     return {
       public: keyPair.getPublic("hex").replace(/^04/, ""),

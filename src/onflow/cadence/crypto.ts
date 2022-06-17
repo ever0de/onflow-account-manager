@@ -1,7 +1,7 @@
 import { ec as EC } from "elliptic";
 import SHA3 from "sha3";
 
-const ec = new EC("p256");
+export const ec = new EC("p256");
 
 export const hashMsg = (msg: string): Buffer => {
   const sha = new SHA3(256);

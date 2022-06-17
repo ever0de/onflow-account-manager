@@ -3,41 +3,16 @@ import * as fcl from "@onflow/fcl";
 import { signWithKey } from "../cadence/crypto";
 import { Address, TxId } from "../types";
 
-import { KeyPair } from "./types";
-
-export const enum TxStatus {
-  Unknown = 0,
-  /**
-   * Transaction Pending - Awaiting Finalization
-   */
-  Pending = 1,
-  /**
-   * Transaction Finalized - Awaiting Execution
-   */
-  Finalized = 2,
-  /**
-   * Transaction Executed - Awaiting Sealing
-   */
-  Executed = 3,
-  /**
-   * Transaction Sealed - Transaction Complete. At this point the transaction
-   * result has been committed to the blockchain.
-   */
-  Sealed = 4,
-  /**
-   * Transaction Expired
-   */
-  Expired = 5,
-}
+import { KeyPair, TxStatus } from "./types";
 
 export class Account {
-  private static DEFAULT_SEQNUM: number = 0;
+  private static DEFAULT_SEQ_NUM: number = 0;
 
   private constructor(
     public readonly address: Address,
     private readonly keyPair: KeyPair,
     private _seqNum: number,
-    private readonly _keyId?: number,
+    private readonly _keyId: number,
     private _txId?: TxId,
   ) {}
 
@@ -48,20 +23,24 @@ export class Account {
     seqNum?: number;
   }): Promise<Account> {
     let seqNum = args.seqNum;
+    const keyId = args.keyId ?? Account.DEFAULT_SEQ_NUM;
     if (!seqNum) {
       const account = await fcl.account(args.address);
       const key = account.keys[args.keyId ?? 0];
 
-      seqNum = key?.sequenceNumber ?? Account.DEFAULT_SEQNUM;
+      seqNum = key?.sequenceNumber ?? Account.DEFAULT_SEQ_NUM;
     }
 
-    return new Account(args.address, args.keyPair, seqNum, args.keyId);
+    return new Account(args.address, args.keyPair, seqNum, keyId);
   }
 
   public get keyId(): number {
-    return this._keyId ?? 0;
+    return this._keyId;
   }
 
+  /**
+   * auto increment sequnce number
+   */
   public get seqNum(): number {
     const seqNum = this._seqNum;
     this._seqNum += 1;
@@ -77,7 +56,7 @@ export class Account {
     this._txId = newTxId;
   }
 
-  public stringify() {
+  public stringify(): string {
     return `${this.address}[${this._seqNum}]`;
   }
 
@@ -86,17 +65,17 @@ export class Account {
       return true;
     }
 
-    return (fcl.tx(this.txId).snapshot() as any).then(
-      (tx: { status: number }) => {
-        const isAvailable = tx.status >= TxStatus.Sealed;
+    return (
+      fcl.tx(this.txId).snapshot() as unknown as Promise<{ status: number }>
+    ).then((tx) => {
+      const isAvailable = tx.status >= TxStatus.Sealed;
 
-        if (isAvailable) {
-          this._txId = undefined;
-        }
+      if (isAvailable) {
+        this._txId = undefined;
+      }
 
-        return isAvailable;
-      },
-    );
+      return isAvailable;
+    });
   }
 
   /**
