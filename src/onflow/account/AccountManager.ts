@@ -18,7 +18,7 @@ export class AccountManager {
 
   constructor(
     private readonly mainAccount: Account,
-    private _accounts: Account[],
+    private _accounts: Account[] = [],
     interval?: number,
   ) {
     if (interval) {
@@ -67,7 +67,6 @@ export class AccountManager {
     const { cadence, args: mutateArgs } = args;
 
     const proposerAccount = await this.getAccount();
-    console.log(proposerAccount.stringify());
 
     const auth = proposerAccount.getCadenceAuth({ isProposer: true });
     const mainAuth = this.mainAccount.getCadenceAuth();
@@ -81,7 +80,6 @@ export class AccountManager {
       // XXX: default value
       limit: 9999,
     });
-    console.log(`Sealing... ${newTxId}`);
     proposerAccount.newTxId = newTxId;
 
     this.save();
@@ -102,7 +100,6 @@ export class AccountManager {
       proposer: mainAuth,
       limit: 9999,
     });
-    console.log(`CREATE NEW ADDRESS: ${newAddress}`);
 
     const newAccount = await Account.new({
       address: newAddress,
@@ -152,7 +149,6 @@ export const ACCOUNT_JSON_PATH = join(__dirname, "../../../data/accounts.json");
 
 const createAccountTx = async (args: fcl.MutateArgs): Promise<Address> => {
   const txId = await fcl.mutate(args);
-  console.log(`CREATE Account TX ID: ${txId}`);
 
   const { events } = await fcl.tx<{ address: Address }>(txId).onceSealed();
 
