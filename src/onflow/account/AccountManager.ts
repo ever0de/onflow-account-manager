@@ -13,16 +13,19 @@ import { KeyPair } from "./types";
 
 export class AccountManager {
   private readonly interval: number = 100;
+  private hook?: (accounts: Account[]) => void;
 
   constructor(
     private readonly mainAccount: Account,
     private _accounts: Account[] = [],
     interval?: number,
   ) {
-    if (interval) {
-      this.interval = interval;
-    }
+    if (interval) this.interval = interval;
   }
+
+  public afterUsedAccountHook = (hook: (accounts: Account[]) => void) => {
+    this.hook = hook;
+  };
 
   public async getAccount(): Promise<Account> {
     for (const account of this._accounts) {
@@ -63,13 +66,15 @@ export class AccountManager {
     });
     proposerAccount.newTxId = newTxId;
 
+    if (this.hook) this.hook(this._accounts);
+
     await delay(this.interval);
     return newTxId;
   }
 
   private async createNewAccount(): Promise<Account> {
-    const keys = this.generateKeyPair();
-    const flowPublicKey = this.encodePublicKeyForFlow(keys.public);
+    const keys = AccountManager.generateKeyPair();
+    const flowPublicKey = AccountManager.encodePublicKeyForFlow(keys.public);
 
     const mainAuth = this.mainAccount.getCadenceAuth();
     const newAddress = await createAccountTx({
@@ -95,7 +100,7 @@ export class AccountManager {
     this._accounts.push(account);
   }
 
-  private generateKeyPair(): KeyPair {
+  private static generateKeyPair(): KeyPair {
     const keyPair = ec.genKeyPair();
 
     return {
@@ -104,7 +109,7 @@ export class AccountManager {
     };
   }
 
-  private encodePublicKeyForFlow(publicKey: string): string {
+  private static encodePublicKeyForFlow(publicKey: string): string {
     const encoded = rlp.encode([
       // publicKey hex to binary
       Buffer.from(publicKey, "hex"),
