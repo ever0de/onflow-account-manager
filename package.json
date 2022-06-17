@@ -1,6 +1,6 @@
 {
-  "name": "onflow-concurrent-transactions",
-  "version": "1.0.0",
+  "name": "onflow-account-manager",
+  "version": "0.0.1",
   "description": "",
   "author": "Jiseok CHOI <jiseok.dev@gmail.com>",
   "license": "MIT",
