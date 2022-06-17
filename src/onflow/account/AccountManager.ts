@@ -16,7 +16,7 @@ export class AccountManager {
   private readonly interval: number = 100;
   private ec: EC = new EC("p256");
 
-  private constructor(
+  constructor(
     private readonly mainAccount: Account,
     private _accounts: Account[],
     interval?: number,
