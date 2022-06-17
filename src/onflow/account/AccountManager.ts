@@ -25,23 +25,6 @@ export class AccountManager {
     }
   }
 
-  public static async fromJsonFile(
-    mainAccount: Account,
-    _path?: string,
-  ): Promise<AccountManager> {
-    const path = _path ?? ACCOUNT_JSON_PATH;
-
-    const buffer = fs.readFileSync(path);
-    const text = buffer.toString("utf8");
-
-    const accounts: Account[] = await Promise.all(
-      JSON.parse(text).map((account: any) => Account.new(account)),
-    );
-    const manager = new AccountManager(mainAccount, accounts);
-
-    return manager;
-  }
-
   public async getAccount(): Promise<Account> {
     for (const account of this._accounts) {
       const isAvailable = await account.isAvailable();
@@ -81,7 +64,6 @@ export class AccountManager {
     });
     proposerAccount.newTxId = newTxId;
 
-    this.save();
     await delay(this.interval);
     return newTxId;
   }
@@ -110,13 +92,8 @@ export class AccountManager {
     return newAccount;
   }
 
-  public save() {
-    fs.writeFileSync(ACCOUNT_JSON_PATH, JSON.stringify(this._accounts));
-  }
-
   private pushAccount(account: Account) {
     this._accounts.push(account);
-    this.save();
   }
 
   private generateKeyPair(): KeyPair {
@@ -143,8 +120,6 @@ export class AccountManager {
     return Buffer.from(encoded).toString("hex");
   }
 }
-
-export const ACCOUNT_JSON_PATH = join(__dirname, "../../../data/accounts.json");
 
 const createAccountTx = async (args: fcl.MutateArgs): Promise<Address> => {
   const txId = await fcl.mutate(args);
