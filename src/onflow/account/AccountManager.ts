@@ -157,4 +157,10 @@ export namespace Helper {
 
     return manager;
   };
+
+  export const saveStaticFile =
+    (path: string) =>
+    (accounts: Account[]): void => {
+      fs.writeFileSync(path, JSON.stringify(accounts));
+    };
 }
