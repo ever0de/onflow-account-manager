@@ -137,3 +137,20 @@ const createAccountTx = async (args: fcl.MutateArgs): Promise<Address> => {
 
   return newAddress;
 };
+
+export namespace Helper {
+  export const fromJsonFile = async (
+    mainAccount: Account,
+    path: string,
+  ): Promise<AccountManager> => {
+    const buffer = fs.readFileSync(path);
+    const text = buffer.toString("utf8");
+
+    const accounts: Account[] = await Promise.all(
+      JSON.parse(text).map((account: any) => Account.new(account)),
+    );
+    const manager = new AccountManager(mainAccount, accounts);
+
+    return manager;
+  };
+}
