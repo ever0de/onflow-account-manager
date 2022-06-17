@@ -143,24 +143,26 @@ const createAccountTx = async (args: fcl.MutateArgs): Promise<Address> => {
 };
 
 export namespace Helper {
-  export const fromJsonFile = async (
-    mainAccount: Account,
-    path: string,
-  ): Promise<AccountManager> => {
-    const buffer = fs.readFileSync(path);
-    const text = buffer.toString("utf8");
+  export const localFile = {
+    from: async (
+      mainAccount: Account,
+      path: string,
+    ): Promise<AccountManager> => {
+      const buffer = fs.readFileSync(path);
+      const text = buffer.toString("utf8");
 
-    const accounts: Account[] = await Promise.all(
-      JSON.parse(text).map((account: any) => Account.new(account)),
-    );
-    const manager = new AccountManager(mainAccount, accounts);
+      const accounts: Account[] = await Promise.all(
+        JSON.parse(text).map((account: any) => Account.new(account)),
+      );
+      const manager = new AccountManager(mainAccount, accounts);
 
-    return manager;
+      return manager;
+    },
+
+    save:
+      (path: string) =>
+      (accounts: Account[]): void => {
+        fs.writeFileSync(path, JSON.stringify(accounts));
+      },
   };
-
-  export const saveStaticFile =
-    (path: string) =>
-    (accounts: Account[]): void => {
-      fs.writeFileSync(path, JSON.stringify(accounts));
-    };
 }
